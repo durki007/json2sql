@@ -1,78 +1,86 @@
-# MIASI Project
+# Translator Application
 
-This project consists of two modules:
-1. **json2sql-lib**: A library for converting JSON to SQL.
-2. **translator-app**: A Spring Boot application that uses the `json2sql-lib` library.
+This project consists of a translator application and a PostgreSQL database. The services are orchestrated using Docker Compose.
 
 ## Prerequisites
 
-Before running the project, ensure you have the following installed:
-- [Java 21](https://www.oracle.com/java/technologies/javase-jdk21-downloads.html)
-- [Maven 3.8+](https://maven.apache.org/download.cgi)
-- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (for running the PostgreSQL database)
+- Install [Docker](https://www.docker.com/)
+- Install [Docker Compose](https://docs.docker.com/compose/)
+- Install [Maven](https://maven.apache.org/) (for development mode)
+- Install [Java 21](https://jdk.java.net/21/) (for development mode)
 
-## Build and Run Instructions
+## Running the Project
 
-### Step 1: Clone the Repository
-Clone the repository to your local machine:
-```bash
-git clone <repository-url>
-cd miasi
-```
+### 1. Demonstration Mode (Full Docker Compose)
 
-### Step 2: Run the Database Using Docker Compose
-Start the PostgreSQL database using `docker-compose`:
-```bash
-docker-compose up -d
-```
+1. Clone the repository to your local machine:
+   ```bash
+   git clone <repository-url>
+   cd <repository-folder>
+   ```
 
-This will start a PostgreSQL container with the following configuration:
-- **POSTGRES_USER**: `translator_user`
-- **POSTGRES_PASSWORD**: `translator_password`
-- **POSTGRES_DB**: `translator_db`
-- **Port Mapping**: Maps the container's port `5432` to the host's port `5432`.
+2. Start the services using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
 
-### Step 3: Configure the Application
-Ensure the `application.properties` file in the `translator-app` module is configured to connect to the database:
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/translator_db
-spring.datasource.username=translator_user
-spring.datasource.password=translator_password
-```
+   This will:
+   - Start a PostgreSQL database container (`postgres-db`) on port `5432`.
+   - Build and start the translator application container (`translator-app`) on port `8080`.
 
-### Step 4: Build the Project
-Build the `json2sql-lib` module and install it to the local Maven repository:
-```bash
-mvn clean install -pl json2sql-lib
-```
+3. Verify the services:
+   - PostgreSQL: Connect to `localhost:5432` using a PostgreSQL client with the following credentials:
+     - Username: `translator_user`
+     - Password: `translator_password`
+     - Database: `translator_db`
+   - Translator App: Access the application at `http://localhost:8080`.
 
-### Step 5: Run the Translator App
-Run the `translator-app` module using the Spring Boot Maven plugin:
-```bash
-mvn spring-boot:run -pl translator-app
-```
+4. To stop the services:
+   ```bash
+   docker-compose down
+   ```
 
-### Step 6: Access the Application
-Once the application starts, you can access it at:
-```
-http://localhost:8080
-```
+### 2. Development Mode (Database Dockerized, App Run Locally)
 
-## Project Structure
+1. Clone the repository to your local machine:
+   ```bash
+   git clone <repository-url>
+   cd <repository-folder>
+   ```
 
-```
-miasi/
-├── json2sql-lib/       # Library module for JSON to SQL conversion
-├── translator-app/     # Spring Boot application
-├── docker-compose.yml  # Docker Compose configuration for PostgreSQL
-├── pom.xml             # Parent POM file
-└── README.md           # Project documentation
-```
+2. Start only the PostgreSQL database using Docker Compose:
+   ```bash
+   docker-compose up -d postgres-db
+   ```
+
+   This will start the PostgreSQL database container (`postgres-db`) on port `5432`.
+
+3. Build the library module:
+   ```bash
+   mvn clean install -pl json2sql-lib -am
+   ```
+
+   This will build the `json2sql-lib` module and install it in the local Maven repository.
+
+4. Configure the application to connect to the database:
+   - Ensure the following environment variables are set in your local environment:
+     - `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/translator_db`
+     - `SPRING_DATASOURCE_USERNAME=translator_user`
+     - `SPRING_DATASOURCE_PASSWORD=translator_password`
+
+5. Run the Spring application locally:
+   ```bash
+   mvn spring-boot:run -pl translator-app
+   ```
+
+   The application will be accessible at `http://localhost:8080`.
+
+6. To stop the database container:
+   ```bash
+   docker-compose down
+   ```
 
 ## Notes
-- Ensure that the database configuration in `translator-app` (e.g., `application.properties`) matches the `docker-compose.yml` settings.
-- To stop the database container, run:
-  ```bash
-  docker-compose down
-  ```
-- If you encounter any issues, check the logs for detailed error messages.
+
+- The database data is persisted in a Docker volume named `postgres_data`.
+- Ensure that the `SPRING_DATASOURCE_USERNAME` and `SPRING_DATASOURCE_PASSWORD` environment variables are correctly implemented in the application.
