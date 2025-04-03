@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "queryType": {
+      "type": "string",
+      "enum": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "description": "The type of SQL query."
+    },
+    "table": {
+      "type": "string",
+      "description": "The name of the table to query."
+    },
+    "columns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of column names (used in SELECT, INSERT, UPDATE)."
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      },
+      "description": "Values to insert or update, represented as key-value pairs."
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "column": { "type": "string" },
+          "operator": {
+            "type": "string",
+            "enum": ["=", "!=", ">", "<", ">=", "<=", "LIKE", "IN"]
+          },
+          "value": { "type": "string" }
+        },
+        "required": ["column", "operator", "value"]
+      },
+      "description": "Filtering conditions for WHERE clause."
+    },
+    "orderBy": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "column": { "type": "string" },
+          "direction": { "type": "string", "enum": ["ASC", "DESC"] }
+        },
+        "required": ["column"]
+      },
+      "description": "Order by clause."
+    },
+    "groupBy": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Group by clause."
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Limits the number of results."
+    }
+  },
+  "required": ["queryType", "table"]
+}
