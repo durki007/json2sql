@@ -1,0 +1,12 @@
+{
+  "queryType": "SELECT",
+  "table": "users",
+  "columns": ["id", "email", "first_name", "last_name"],
+  "conditions": [
+    { "column": "email", "operator": "LIKE", "value": "%gmail.com%" }
+  ],
+  "orderBy": [
+    { "column": "id", "direction": "ASC" }
+  ],
+  "limit": 10
+}
