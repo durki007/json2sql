@@ -2,18 +2,19 @@ package pl.pwr.parser;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-import pl.pwr.antlr.QueryLangLexer;
-import pl.pwr.antlr.QueryLangParser;
+import src.main.antlr.JSONLexer;
+import src.main.antlr.JSONParser;
+
 
 public class QueryTranslator {
     public String translate(String input) {
         CharStream charStream = CharStreams.fromString(input);
-        QueryLangLexer lexer = new QueryLangLexer(charStream);
+        JSONLexer lexer = new JSONLexer(charStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        QueryLangParser parser = new QueryLangParser(tokens);
+        JSONParser parser = new JSONParser(tokens);
 
-        ParseTree tree = parser.query();
-        SqlVisitor visitor = new SqlVisitor();
+        ParseTree tree = parser.json();
+        Json2SqlVisitor visitor = new Json2SqlVisitor();
         return visitor.visit(tree);
     }
 }
