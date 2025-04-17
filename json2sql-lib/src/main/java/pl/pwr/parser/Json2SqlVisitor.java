@@ -1,7 +1,8 @@
 package pl.pwr.parser;
 
-import src.main.antlr.JSONBaseVisitor;
-import src.main.antlr.JSONParser;
+
+import pl.pwr.antlr.JSONBaseVisitor;
+import pl.pwr.antlr.JSONParser;
 
 import java.util.List;
 import java.util.Objects;

@@ -1,9 +1,13 @@
 package pl.pwr.parser;
 
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
-import src.main.antlr.JSONLexer;
-import src.main.antlr.JSONParser;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import pl.pwr.antlr.JSONLexer;
+import pl.pwr.antlr.JSONParser;
+
 
 
 public class QueryTranslator {
