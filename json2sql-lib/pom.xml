@@ -20,30 +20,6 @@
             <version>4.13.1</version>
         </dependency>
     </dependencies>
-
-    <!--    <build>-->
-    <!--        <plugins>-->
-    <!--            <plugin>-->
-    <!--                <groupId>org.codehaus.mojo</groupId>-->
-    <!--                <artifactId>build-helper-maven-plugin</artifactId>-->
-    <!--                <version>3.5.0</version>-->
-    <!--                <executions>-->
-    <!--                    <execution>-->
-    <!--                        <id>add-source</id>-->
-    <!--                        <phase>generate-sources</phase>-->
-    <!--                        <goals>-->
-    <!--                            <goal>add-source</goal>-->
-    <!--                        </goals>-->
-    <!--                        <configuration>-->
-    <!--                            <sources>-->
-    <!--                                <source>${project.basedir}/dir</source>-->
-    <!--                            </sources>-->
-    <!--                        </configuration>-->
-    <!--                    </execution>-->
-    <!--                </executions>-->
-    <!--            </plugin>-->
-    <!--        </plugins>-->
-    <!--    </build>-->
     <build>
         <plugins>
             <plugin>
@@ -52,6 +28,7 @@
                 <version>4.13.1</version>
                 <executions>
                     <execution>
+                        <id>antlr</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>antlr4</goal>
@@ -60,9 +37,32 @@
                 </executions>
                 <configuration>
                     <visitor>true</visitor>
-                    <!--                    <outputDirectory>${project.basedir}/gen/main/java/pl.pwr.antlr</outputDirectory>-->
+                    <sourceDirectory>${project.basedir}/src/main/antlr4</sourceDirectory>
                     <outputDirectory>${project.basedir}/src/main/java/pl/pwr/antlr</outputDirectory>
+                    <arguments>
+                        <argument>-package</argument>
+                        <argument>pl.pwr.antlr</argument>
+                    </arguments>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
