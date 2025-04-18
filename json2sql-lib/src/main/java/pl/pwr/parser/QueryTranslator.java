@@ -8,8 +8,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import pl.pwr.antlr.JSONLexer;
 import pl.pwr.antlr.JSONParser;
 
-
-
 public class QueryTranslator {
     public String translate(String input) {
         CharStream charStream = CharStreams.fromString(input);
@@ -21,4 +19,6 @@ public class QueryTranslator {
         Json2SqlVisitor visitor = new Json2SqlVisitor();
         return visitor.visit(tree);
     }
+
+
 }

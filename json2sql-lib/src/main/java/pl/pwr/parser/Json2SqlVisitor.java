@@ -38,7 +38,16 @@ public class Json2SqlVisitor extends JSONBaseVisitor<String> {
                 case "queryType" -> queryType = value != null ? value.toUpperCase() : null;
                 case "table" -> table = value;
                 case "columns" -> columns = value != null ? extractArray(pair.value()) : null;
-                case "values" -> values = value != null ? extractKeyValuePairs(pair.value()) : null;
+                case "values" -> {
+                    if (value != null) {
+                        // Use different extraction methods based on query type
+                        if ("INSERT".equalsIgnoreCase(queryType)) {
+                            values = extractValuesForInsert(pair.value(), columns);
+                        } else {
+                            values = extractKeyValuePairs(pair.value());
+                        }
+                    }
+                }
                 case "conditions" -> conditions = value != null ? extractConditions(pair.value()) : null;
                 case "orderBy" -> orderBy = value != null ? extractOrderBy(pair.value()) : null;
                 case "groupBy" -> groupBy = value != null ? extractArray(pair.value()) : null;
@@ -65,7 +74,7 @@ public class Json2SqlVisitor extends JSONBaseVisitor<String> {
                 if (conditions != null && !conditions.isEmpty()) sql.append(" WHERE ").append(String.join(" AND ", conditions));
                 if (groupBy != null && !groupBy.isEmpty()) sql.append(" GROUP BY ").append(String.join(", ", groupBy));
                 if (orderBy != null && !orderBy.isEmpty()) sql.append(" ORDER BY ").append(String.join(", ", orderBy));
-                if (limit != null && !limit.isEmpty()) sql.append(" LIMIT ").append(limit);
+                if (limit != null && !limit.isEmpty() && !"null".equals(limit)) sql.append(" LIMIT ").append(limit);
             }
             case "INSERT" -> {
                 if (columns != null && !columns.isEmpty() && values != null && !values.isEmpty()) {
@@ -105,6 +114,34 @@ public class Json2SqlVisitor extends JSONBaseVisitor<String> {
         return null;
     }
 
+    private List<String> extractValuesForInsert(JSONParser.ValueContext ctx, List<String> columns) {
+        if (ctx.arr() != null && ctx.arr().value() != null && !ctx.arr().value().isEmpty()) {
+            JSONParser.ValueContext firstValue = ctx.arr().value(0);
+            JSONParser.ObjContext obj = firstValue.obj();
+            
+            if (obj != null && columns != null && !columns.isEmpty()) {
+                return columns.stream()
+                    .map(column -> {
+                        // Find the matching column value in the object
+                        for (JSONParser.PairContext pair : obj.pair()) {
+                            String key = pair.STRING().getText().replace("\"", "");
+                            if (column.equals(key)) {
+                                String value = pair.value().getText();
+                                // Add quotes for string values
+                                if (value.startsWith("\"") && value.endsWith("\"")) {
+                                    return "'" + value.substring(1, value.length() - 1) + "'";
+                                }
+                                return value;
+                            }
+                        }
+                        return "null"; // If column not found in values
+                    })
+                    .collect(Collectors.toList());
+            }
+        }
+        return null;
+    }
+
     private List<String> extractKeyValuePairs(JSONParser.ValueContext ctx) {
         if (ctx.arr() != null && ctx.arr().value() != null) {
             return ctx.arr().value().stream()
@@ -128,15 +165,32 @@ public class Json2SqlVisitor extends JSONBaseVisitor<String> {
             return ctx.arr().value().stream()
                     .map(v -> {
                         JSONParser.ObjContext obj = v.obj();
-                        if (obj != null && obj.pair(0) != null && obj.pair(1) != null && obj.pair(2) != null) {
-                            String column = obj.pair(0).STRING().getText().replace("\"", "");
-                            String operator = obj.pair(1).value().getText().replace("\"", "");
-                            String value = obj.pair(2).value().getText().replace("\"", "'");
-                            return column + " " + operator + " " + value;
+                        if (obj != null) {
+                            // Find the "column", "operator", and "value" keys 
+                            String columnName = null;
+                            String operator = null;
+                            String value = null;
+                            
+                            for (int i = 0; i < obj.pair().size(); i++) {
+                                String key = obj.pair(i).STRING().getText().replace("\"", "");
+                                switch (key) {
+                                    case "column" -> columnName = visitValue(obj.pair(i).value());
+                                    case "operator" -> operator = visitValue(obj.pair(i).value());
+                                    case "value" -> {
+                                        value = visitValue(obj.pair(i).value());
+                                        // Values need quotes for strings
+                                        if (!value.startsWith("'")) value = "'" + value + "'";
+                                    }
+                                }
+                            }
+                            
+                            if (columnName != null && operator != null && value != null) {
+                                return columnName + " " + operator + " " + value;
+                            }
                         }
                         return null;
                     })
-                    .filter(Objects::nonNull)  // Ignore null conditions
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         }
         return null;
@@ -147,14 +201,27 @@ public class Json2SqlVisitor extends JSONBaseVisitor<String> {
             return ctx.arr().value().stream()
                     .map(v -> {
                         JSONParser.ObjContext obj = v.obj();
-                        if (obj != null && obj.pair(0) != null && obj.pair(1) != null) {
-                            String column = obj.pair(0).STRING().getText().replace("\"", "");
-                            String direction = obj.pair(1).value().getText().replace("\"", "").toUpperCase();
-                            return column + " " + direction;
+                        if (obj != null) {
+                            // Find the "column" and "direction" keys
+                            String columnName = null;
+                            String direction = null;
+                            
+                            for (int i = 0; i < obj.pair().size(); i++) {
+                                String key = obj.pair(i).STRING().getText().replace("\"", "");
+                                if ("column".equals(key)) {
+                                    columnName = visitValue(obj.pair(i).value());
+                                } else if ("direction".equals(key)) {
+                                    direction = visitValue(obj.pair(i).value()).toUpperCase();
+                                }
+                            }
+                            
+                            if (columnName != null && direction != null) {
+                                return columnName + " " + direction;
+                            }
                         }
                         return null;
                     })
-                    .filter(Objects::nonNull)  // Ignore null orders
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         }
         return null;
