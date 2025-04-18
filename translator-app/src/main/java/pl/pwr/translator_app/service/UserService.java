@@ -1,17 +1,18 @@
 package pl.pwr.translator_app.service;
 
+import java.util.Collections;
+
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import pl.pwr.parser.QueryTranslator;
-import pl.pwr.translator_app.domain.User;
 import pl.pwr.translator_app.dto.QueryRequestDTO;
 import pl.pwr.translator_app.dto.QueryResultDTO;
 import pl.pwr.translator_app.repository.UserRepository;
-
-import java.util.Collections;
-import java.util.List;
+import pl.pwr.translator_app.result.QueryResult;
 
 @Component
 @RequiredArgsConstructor
@@ -35,39 +36,34 @@ public class UserService {
             String queryType = query.getQueryType().toUpperCase();
             
             // Execute the translated SQL query
-            List<User> users = userRepository.queryUsers(translatedQuery);
+            QueryResult queryResult = userRepository.queryUsers(translatedQuery);
             
             // Create appropriate response based on query type
             QueryResultDTO result = new QueryResultDTO();
             result.setSuccessful(true);
             result.setQuery(translatedQuery);
+            result.setRowsAffected(queryResult.getRowsAffected());
 
             switch (queryType) {
                 case "SELECT" -> {
                     result.setOperation("SELECT");
                     result.setMessage("Query executed successfully");
-                    result.setResults(users);
-                    result.setRowsAffected(users.size());
+                    result.setResults(queryResult.getUsers());
                 }
                 case "INSERT" -> {
                     result.setOperation("INSERT");
                     result.setMessage("Data inserted successfully");
                     result.setResults(Collections.emptyList());
-                    result.setRowsAffected(1); // Assuming one row inserted
                 }
                 case "UPDATE" -> {
                     result.setOperation("UPDATE");
                     result.setMessage("Data updated successfully");
                     result.setResults(Collections.emptyList());
-                    // We don't know exactly how many rows affected, but at least the query succeeded
-                    result.setRowsAffected(0);
                 }
                 case "DELETE" -> {
                     result.setOperation("DELETE");
                     result.setMessage("Data deleted successfully");
                     result.setResults(Collections.emptyList());
-                    // We don't know exactly how many rows affected, but at least the query succeeded
-                    result.setRowsAffected(0);
                 }
             }
             

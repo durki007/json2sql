@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import pl.pwr.translator_app.domain.User;
 import pl.pwr.translator_app.mapper.UserMapper;
 import pl.pwr.translator_app.model.UserEntity;
+import pl.pwr.translator_app.result.QueryResult;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,26 +28,28 @@ public class UserRepository {
 
     @SuppressWarnings("unchecked")
     @Transactional
-    public List<User> queryUsers(String query) {
+    public QueryResult queryUsers(String query) {
         try {
             // Check if this is a SELECT query
             if (query.trim().toUpperCase().startsWith("SELECT")) {
                 Query nativeQuery = entityManager.createNativeQuery(query, UserEntity.class);
                 List<UserEntity> entities = (List<UserEntity>) nativeQuery.getResultList();
 
-                return entities.stream()
+                List<User> users = entities.stream()
                         .map(userMapper::map)
                         .collect(Collectors.toList());
+                
+                return new QueryResult(users, users.size());
             } else {
                 // Handle non-SELECT queries (INSERT, UPDATE, DELETE)
                 Query nativeQuery = entityManager.createNativeQuery(query);
                 int rowsAffected = nativeQuery.executeUpdate();
                 log.info("Non-SELECT query executed successfully. Rows affected: {}", rowsAffected);
-                return Collections.emptyList();
+                return new QueryResult(Collections.emptyList(), rowsAffected);
             }
         } catch (Exception e) {
             log.error("Error executing dynamic query: {}", query, e);
-            return Collections.emptyList();
+            return new QueryResult(Collections.emptyList(), 0);
         }
     }
 }

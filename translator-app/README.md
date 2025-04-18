@@ -51,3 +51,44 @@
   ]
 }
 ```
+
+5. `UPDATE`
+/POST http://localhost:8080/users
+```json
+{
+  "queryType": "UPDATE",
+  "table": "user_entity",
+  "columns": ["first_name"],
+  "values": [
+    { "first_name": "Mark" }
+  ],
+  "conditions": [
+    { "column": "first_name", "operator": "=", "value": "Alice" }
+  ]
+}
+```
+
+6. `DELETE`
+/POST http://localhost:8080/users
+```json
+{
+  "queryType": "DELETE",
+  "table": "user_entity",
+  "conditions": [
+    { "column": "email", "operator": "LIKE", "value": "%spam.com" }
+  ]
+}
+```
+
+7. `LIMIT`
+/POST http://localhost:8080/users
+```json
+{
+  "queryType": "SELECT",
+  "table": "user_entity",
+  "columns": ["id", "first_name", "email", "last_name"],
+  "limit": 2
+}
+```
+
+Currently `GROUP BY`, `AVG`, `MAX`, `MIN`, `COUNT()` and `JOIN` operations are not supported
