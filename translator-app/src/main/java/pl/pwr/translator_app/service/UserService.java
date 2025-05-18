@@ -14,7 +14,6 @@ import pl.pwr.parser.QueryTranslator;
 import pl.pwr.translator_app.domain.User;
 import pl.pwr.translator_app.dto.QueryRequestDTO;
 import pl.pwr.translator_app.dto.QueryResultDTO;
-import pl.pwr.translator_app.model.UserEntity;
 import pl.pwr.translator_app.repository.UserRepository;
 import pl.pwr.translator_app.result.QueryResult;
 

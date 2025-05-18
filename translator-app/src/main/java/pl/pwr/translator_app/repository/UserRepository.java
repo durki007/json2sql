@@ -190,4 +190,27 @@ public class UserRepository {
         
         return users;
     }
+
+    /**
+     * Insert specific data for integration tests
+     *
+     * @param userEntityList list of user entities to insert
+     * @return list of created users
+     */
+    @Transactional
+    public List<User> plantTestData(List<UserEntity> userEntityList) {
+        List<User> users = new ArrayList<>();
+
+        userEntityList.forEach(userEntity -> {
+            if (userEntity.getId() == 0) {
+                entityManager.persist(userEntity);
+                users.add(userMapper.map(userEntity));
+            } else {
+                entityManager.merge(userEntity);
+                users.add(userMapper.map(userEntity));
+            }
+        });
+
+        return users;
+    }
 }

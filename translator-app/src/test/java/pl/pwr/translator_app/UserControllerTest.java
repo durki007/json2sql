@@ -18,8 +18,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import pl.pwr.translator_app.domain.User;
+import pl.pwr.translator_app.model.UserEntity;
 import pl.pwr.translator_app.repository.UserRepository;
 import pl.pwr.translator_app.service.UserService;
+
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -38,13 +41,13 @@ class UserControllerTest {
 
     @Autowired
     private TestEntityManager entityManager;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private PlatformTransactionManager transactionManager;
 
@@ -60,7 +63,7 @@ class UserControllerTest {
         RestAssured.baseURI = "http://localhost:" + port;
         clearDatabase();
     }
-    
+
     void clearDatabase() {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.execute(status -> {
@@ -90,10 +93,10 @@ class UserControllerTest {
 """)
                 .when()
                 .post("/users");
-                
+
         // Print the raw response body
         response.prettyPrint();
-                
+
         response.then()
                 .statusCode(200)
                 .body("successful", equalTo(true))
@@ -138,7 +141,7 @@ class UserControllerTest {
                 .body("results[0].firstName", startsWith("TestUser"));
     }
 
-    
+
     @Test
     void shouldSelectSingleUserByCondition() {
         // Prepare test data in a committed transaction
@@ -152,7 +155,7 @@ class UserControllerTest {
                     .build());
             return null;
         });
-        
+
         // Execute SELECT query with condition
         Response response = given()
                 .contentType(ContentType.JSON)
@@ -172,10 +175,10 @@ class UserControllerTest {
 """, createdUser[0].id()))
                 .when()
                 .post("/users");
-                
+
         // Print the raw response body
         response.prettyPrint();
-                
+
         response.then()
                 .statusCode(200)
                 .body("successful", equalTo(true))
@@ -240,7 +243,7 @@ class UserControllerTest {
             return null;
         });
     }
-    
+
     @Test
     void shouldDeleteExistingUser() {
         // Prepare test data in a committed transaction
@@ -254,13 +257,13 @@ class UserControllerTest {
                     .build());
             return null;
         });
-        
+
         // Verify the user exists
         transactionTemplate.execute(status -> {
             assertThat(userRepository.findUserById(createdUser[0].id())).isPresent();
             return null;
         });
-        
+
         // Execute DELETE query
         Response response = given()
                 .contentType(ContentType.JSON)
@@ -279,23 +282,23 @@ class UserControllerTest {
 """)
                 .when()
                 .post("/users");
-                
+
         // Print the raw response body
         response.prettyPrint();
-                
+
         response.then()
                 .statusCode(200)
                 .body("successful", equalTo(true))
                 .body("operation", equalTo("DELETE"))
                 .body("rowsAffected", equalTo(1));
-        
+
         // Verify the user was deleted in a new transaction
         transactionTemplate.execute(status -> {
             assertThat(userRepository.findUserById(createdUser[0].id())).isEmpty();
             return null;
         });
     }
-    
+
     @Test
     void shouldDeleteAllUsersWithoutCondition() {
         // Prepare test data in a committed transaction
@@ -304,7 +307,7 @@ class UserControllerTest {
             userRepository.createTestData(5);
             return null;
         });
-        
+
         // Verify data was created
         transactionTemplate.execute(status -> {
             assertThat(userRepository.findAllUsers()).hasSize(5);
@@ -322,19 +325,75 @@ class UserControllerTest {
 """)
                 .when()
                 .post("/users");
-                
+
         // Print the raw response body
         response.prettyPrint();
-                
+
         response.then()
                 .statusCode(200)
                 .body("successful", equalTo(true))
                 .body("operation", equalTo("DELETE"))
                 .body("rowsAffected", equalTo(5));
-        
+
         // Verify all users were deleted in a new transaction
         transactionTemplate.execute(status -> {
             assertThat(userRepository.findAllUsers()).isEmpty();
+            return null;
+        });
+    }
+
+    @Test
+    void shouldDeleteAllUsersWithCondition() {
+        // Prepare test data in a committed transaction
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.execute(status -> {
+            userRepository.createTestData(5);
+            return null;
+        });
+
+        // Plant user to delete in test
+        transactionTemplate.execute( status -> {
+            List<UserEntity> plantedUserEntities = List.of(UserEntity.builder()
+                    .firstName("Planted")
+                    .lastName("User")
+                    .email("email@spam.com").build());
+            userRepository.plantTestData(plantedUserEntities);
+            return null;
+        });
+
+        // Verify data was created
+        transactionTemplate.execute(status -> {
+            assertThat(userRepository.findAllUsers()).hasSize(5 + 1);
+            return null;
+        });
+
+        // Execute DELETE query with conditions
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .body("""
+{
+  "queryType": "DELETE",
+  "table": "user_entity",
+  "conditions": [
+    { "column": "email", "operator": "LIKE", "value": "%spam.com" }
+  ]
+}
+""")
+                .when()
+                .post("/users");
+
+        // Print the raw response body
+        response.prettyPrint();
+
+        response.then()
+                .statusCode(200)
+                .body("successful", equalTo(true))
+                .body("operation", equalTo("DELETE"))
+                .body("rowsAffected", equalTo(1));
+
+        // Verify only one user was deleted in a new transaction
+        transactionTemplate.execute(status -> {
+            assertThat(userRepository.findAllUsers()).hasSize(5);
             return null;
         });
     }
