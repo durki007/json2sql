@@ -1,20 +1,23 @@
 package pl.pwr.translator_app.service;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.pwr.parser.QueryTranslator;
+import pl.pwr.translator_app.domain.User;
 import pl.pwr.translator_app.dto.QueryRequestDTO;
 import pl.pwr.translator_app.dto.QueryResultDTO;
 import pl.pwr.translator_app.repository.UserRepository;
 import pl.pwr.translator_app.result.QueryResult;
 
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
@@ -76,5 +79,73 @@ public class UserService {
             result.setResults(Collections.emptyList());
             return result;
         }
+    }
+    
+    // CRUD operations
+    
+    /**
+     * Create a new user
+     * 
+     * @param user the user to create
+     * @return the created user
+     */
+    public User createUser(User user) {
+        return userRepository.saveUser(user);
+    }
+    
+    /**
+     * Find a user by ID
+     * 
+     * @param id the user ID
+     * @return an Optional containing the user if found
+     */
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findUserById(id);
+    }
+    
+    /**
+     * Get all users
+     * 
+     * @return a list of all users
+     */
+    public List<User> findAllUsers() {
+        return userRepository.findAllUsers();
+    }
+    
+    /**
+     * Update a user
+     * 
+     * @param user the user to update
+     * @return the updated user
+     */
+    public User updateUser(User user) {
+        return userRepository.saveUser(user);
+    }
+    
+    /**
+     * Delete a user by ID
+     * 
+     * @param id the ID of the user to delete
+     * @return true if the user was deleted, false if not found
+     */
+    public boolean deleteUser(Long id) {
+        return userRepository.deleteById(id);
+    }
+    
+    /**
+     * Delete all users
+     */
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
+    }
+    
+    /**
+     * Create sample test data for integration tests
+     * 
+     * @param count number of users to create
+     * @return list of created users
+     */
+    public List<User> createTestData(int count) {
+        return userRepository.createTestData(count);
     }
 }

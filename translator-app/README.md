@@ -92,3 +92,18 @@
 ```
 
 Currently `GROUP BY`, `AVG`, `MAX`, `MIN`, `COUNT()` and `JOIN` operations are not supported
+
+## Running integration tests
+
+1. run all tests
+```shell
+cd translator-app
+mvn test
+```
+
+
+2. run specific test
+```shell
+cd translator-app
+mvn test -Dtest=UserControllerTest
+```
