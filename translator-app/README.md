@@ -100,10 +100,3 @@ Currently `GROUP BY`, `AVG`, `MAX`, `MIN`, `COUNT()` and `JOIN` operations are n
 cd translator-app
 mvn test
 ```
-
-
-2. run specific test
-```shell
-cd translator-app
-mvn test -Dtest=UserControllerTest
-```
