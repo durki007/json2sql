@@ -84,3 +84,8 @@ This project consists of a translator application and a PostgreSQL database. The
 
 - The database data is persisted in a Docker volume named `postgres_data`.
 - Ensure that the `SPRING_DATASOURCE_USERNAME` and `SPRING_DATASOURCE_PASSWORD` environment variables are correctly implemented in the application.
+
+
+## Interacting with the application
+
+For guidelines how to interact with the app check the `README.md` file in the `./translator-app`.
